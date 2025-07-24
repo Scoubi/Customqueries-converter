@@ -6,17 +6,22 @@ This method is inspired by [REDSEERcurity Spotlight](https://medium.com/seercuri
 
 I tried their method and got an error message, so I decided see if ChatGPT could help figure out the error. 
 
-## Method 
+## Locate your Legacy Custom Queries 
 
-1. You will need your `customqueries.json` file. It can be found in a specific folder on each OS
-   - Windows : C:\Users\[USERNAME]\AppData\Roaming\BloodHound\customqueries.json
-   - MacOS : /Users/[USERNAME]/Library/Application Support/bloodhound/customqueries.json
-   - Linux : ~/.config/bloodhound/customqueries.json
+You will need your `customqueries.json` file. It can be found in a specific folder on each OS
+- Windows : C:\Users\[USERNAME]\AppData\Roaming\BloodHound\customqueries.json
+- MacOS : /Users/[USERNAME]/Library/Application Support/bloodhound/customqueries.json
+- Linux : ~/.config/bloodhound/customqueries.json
   
 Alternatively you can use one of the `customqueries.json` file that are available on GitHub. 
+- [Hausec](https://github.com/hausec/Bloodhound-Custom-Queries/blob/master/customqueries.json)
+- [ZephrFish](https://github.com/ZephrFish/Bloodhound-CustomQueries/blob/main/customqueries.json)
+- [Compass Security](https://github.com/CompassSecurity/BloodHoundQueries/blob/master/BloodHound_Custom_Queries/customqueries.json)
 
-2. Convert your Legacy json into a format BHCE's API can consume
-This query
+## Converting to the new Format
+
+Convert your Legacy json into a format BHCE's API can consume.  
+The `jq` query bellow will:
 - Ignore the queries that have selectors in them (they use the `"final": false` for the first query)
 - Make sure the query as a name
 - Write a file named `bhce_customqueries.json`
@@ -25,9 +30,17 @@ This query
 jq '[.queries[] | . as $parent | .queryList[] | select(.final) | {name: (.title // $parent.name), query: .query, description: $parent.name}]' customqueries.json > bhce_customqueries.json
 ```
 
-3. In your BHCE instance, grab the `JTW Bearer token`
+## Prepare to Use the API
+1. In your BHCE instance, grab the `JTW Bearer token`
 
-4. Modify the following bash script
+[Instruction will follow]
+
+## Upload the JSON to BHCE
+Now the
+
+### For Linux and MacOS
+
+Modify the following bash script
 - Make sure you have the right URL in `API_URL`
 - Replace `"eyJhb..."` with the actual JTW Token you found in the previous step
 - Save the script to a file like `up_queries.sh`
@@ -61,6 +74,10 @@ done
 5. Upload the queries
 - In your terminal run the following command : `bash up_queries.sh`
 
+### For Windows
+
+[Add a PoSh Script]
+
 ## Conclusion
 
-This was tested using BloodHound Legacy Version: 4.3.1 and [BloodHound-CE](https://github.com/SpecterOps/BloodHound) v8.0.0 on MacOS
+This was tested using BloodHound Legacy Version: 4.3.1 and [BloodHound-CE](https://github.com/SpecterOps/BloodHound) v8.0.0 on MacOS with [PowerShell Core](https://learn.microsoft.com/en-us/powershell/scripting/install/installing-powershell?view=powershell-7.5)
