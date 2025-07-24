@@ -99,7 +99,7 @@ Modify the following bash script
 - Make sure you have the right URL in `API_URL`
 - Replace `"eyJhb..."` with the actual JWT Token you found in the previous step
 - Save the script to a file like `up_queries.ps1`
-- 
+
 ``` PowerShell
 $InputFile = "bhce_customqueries.json"
 $ApiUrl = "http://localhost:8080/api/v2/saved-queries"
