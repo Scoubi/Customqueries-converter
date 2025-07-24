@@ -31,26 +31,26 @@ jq '[.queries[] | . as $parent | .queryList[] | select(.final) | {name: (.title 
 ```
 
 ## Prepare to Use the API
-In your BHCE instance, grab the `JTW Bearer token`
+In your BHCE instance, grab the `JWT Bearer token`
 
-**NOTE**: JTW Bearer token are usefull for single usage like in this case. If you want to built a reliable integration, you should use an API Key. 
+**NOTE**: JWT Bearer token are usefull for single usage like in this case. If you want to built a reliable integration, you should use an API Key. 
 
 1. Navigate the to `API Explorer` page
 
-![API Explorer](./img/JTW-1.png)
+![API Explorer](./img/JWT-1.png)
 
 2. Expend a `GET` method such as `/api/v2/self` and click on the `Try it out` button
 
-![Expend API Self](./img/JTW-2.png)
+![Expend API Self](./img/JWT-2.png)
 
 
 3. Click on `Execute`
 
-![Execute](./img/JTW-3.png)
+![Execute](./img/JWT-3.png)
 
 4. In the `Curl` request, copy the value after the `Bearer` word. It should start with `ey`
 
-![Copy JTW value](./img/JTW-4.png)
+![Copy JWT value](./img/JWT-4.png)
 
 ## Upload the JSON to BHCE
 
@@ -59,7 +59,7 @@ If you are using Windows or PowerShell click [here](README.md#Windows)
 
 Modify the following bash script
 - Make sure you have the right URL in `API_URL`
-- Replace `"eyJhb..."` with the actual JTW Token you found in the previous step
+- Replace `"eyJhb..."` with the actual JWT Token you found in the previous step
 - Save the script to a file like `up_queries.sh`
 
 ``` bash
@@ -94,7 +94,7 @@ In your terminal run the following command to upload the queries : `bash up_quer
 
 Modify the following bash script
 - Make sure you have the right URL in `API_URL`
-- Replace `"eyJhb..."` with the actual JTW Token you found in the previous step
+- Replace `"eyJhb..."` with the actual JWT Token you found in the previous step
 - Save the script to a file like `up_queries.ps1`
 - 
 ``` PowerShell
