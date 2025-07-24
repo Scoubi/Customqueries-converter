@@ -13,10 +13,11 @@ You will need your `customqueries.json` file. It can be found in a specific fold
 - MacOS : /Users/[USERNAME]/Library/Application Support/bloodhound/customqueries.json
 - Linux : ~/.config/bloodhound/customqueries.json
   
-Alternatively you can use one of the `customqueries.json` file that are available on GitHub. 
+Alternatively you can use one of the `customqueries.json` file that are available on GitHub (Listed alphabetically). 
+- [Compass Security](https://github.com/CompassSecurity/BloodHoundQueries/blob/master/BloodHound_Custom_Queries/customqueries.json)
 - [Hausec](https://github.com/hausec/Bloodhound-Custom-Queries/blob/master/customqueries.json)
 - [ZephrFish](https://github.com/ZephrFish/Bloodhound-CustomQueries/blob/main/customqueries.json)
-- [Compass Security](https://github.com/CompassSecurity/BloodHoundQueries/blob/master/BloodHound_Custom_Queries/customqueries.json)
+
 
 **NOTE**: For your convinience, I have added a version of those 3 customqueries.json in the new format in the [customqueries](./customqueries) folder of this repo. You can skip the convertion step if you used any of those files.
 
