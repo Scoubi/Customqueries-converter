@@ -1,0 +1,267 @@
+[
+  {
+    "name": "Domains",
+    "query": "MATCH (d:Domain) RETURN d",
+    "description": "Domains"
+  },
+  {
+    "name": "Domain Controllers",
+    "query": "MATCH p=(c:Computer)-[:MemberOf*1..]->(n:Group {name: $result}) RETURN p",
+    "description": "Domain Controllers"
+  },
+  {
+    "name": "High Value Targets",
+    "query": "MATCH p = (d:Domain {name: $result})-[r:Contains*1..]->(h {highvalue: true}) RETURN p",
+    "description": "High Value Targets"
+  },
+  {
+    "name": "Computers without LAPS",
+    "query": "MATCH p = (d:Domain {name: $result})-[r:Contains*1..]->(c:Computer {haslaps: false}) RETURN p",
+    "description": "Computers without LAPS"
+  },
+  {
+    "name": "Owned Principals",
+    "query": "MATCH p = (d:Domain)-[r:Contains*1..]->(o {owned: true}) RETURN p",
+    "description": "Owned Principals"
+  },
+  {
+    "name": "Sensitive Principals by Keywords",
+    "query": "UNWIND ['admin', 'amministratore', 'empfindlich', 'geheim', 'important', 'azure', 'MSOL', 'kennwort', 'pass', 'secret', 'sensib', 'sensitiv'] AS word MATCH (n) WHERE (toLower(n.name) CONTAINS toLower(word)) OR (toLower(n.description) CONTAINS toLower(word)) RETURN n",
+    "description": "Sensitive Principals by Keywords"
+  },
+  {
+    "name": "Users with Password in AD",
+    "query": "MATCH p = (d:Domain {name: $result})-[r:Contains*1..]->(u:User) WHERE u.userpassword IS NOT NULL RETURN p",
+    "description": "Users with Password in AD"
+  },
+  {
+    "name": "Users with \"Pass\" in AD Description",
+    "query": "MATCH p = (d:Domain {name: $result})-[r:Contains*1..]->(u:User) WHERE u.description =~ '(?i).*pass.*' RETURN p",
+    "description": "Users with \"Pass\" in AD Description"
+  },
+  {
+    "name": "Users with Password not Required",
+    "query": "MATCH p = (d:Domain {name: $result})-[r:Contains*1..]->(u:User {passwordnotreqd: true}) RETURN p",
+    "description": "Users with Password not Required"
+  },
+  {
+    "name": "Users with Password never Expiring",
+    "query": "MATCH p = (d:Domain {name: $result})-[r:Contains*1..]->(u:User {pwdneverexpires: True}) WHERE NOT u.name starts with 'KRBTGT' RETURN u",
+    "description": "Users with Password never Expiring"
+  },
+  {
+    "name": "Users with with Same Name in Different Domains",
+    "query": "MATCH (u1:User),(u2:User) WHERE split(u1.name,'@')[0] = split(u2.name,'@')[0] AND u1.domain <> u2.domain AND tointeger(split(u1.objectid,'-')[7]) >= 1000 RETURN u1",
+    "description": "Users with with Same Name in Different Domains"
+  },
+  {
+    "name": "Protected Users",
+    "query": "MATCH p=(u:User)-[:MemberOf*1..]->(n:Group {name: $result}) RETURN p",
+    "description": "Protected Users"
+  },
+  {
+    "name": "AdminTo Relationships",
+    "query": "MATCH p=(u {domain: $result})-[r:AdminTo]->(c:Computer) RETURN p",
+    "description": "AdminTo Relationships"
+  },
+  {
+    "name": "Administrators",
+    "query": "MATCH p=(u:User)-[:MemberOf*1..]->(n:Group {name: $result}) RETURN p",
+    "description": "Administrators"
+  },
+  {
+    "name": "Computers in Administrators",
+    "query": "MATCH p = (c:Computer)-[r:MemberOf|HasSIDHistory*1..]->(g:Group {name: $result}) RETURN p",
+    "description": "Computers in Administrators"
+  },
+  {
+    "name": "Computers Local Admin to Another Computer",
+    "query": "MATCH p = (c1:Computer {domain: $result})-[r1:AdminTo]->(c2:Computer) RETURN p UNION ALL MATCH p = (c3:Computer {domain: $result})-[r2:MemberOf|HasSIDHistory*1..]->(g:Group)-[r3:AdminTo]->(c4:Computer) RETURN p",
+    "description": "Computers Local Admin to Another Computer"
+  },
+  {
+    "name": "Sessions of Administrators on non DCs Computers",
+    "query": "MATCH (dc:Computer {domain: $result})-[r1:MemberOf*0..]->(g1:Group) WHERE g1.objectid =~ \"S-1-5-.*-516\" WITH COLLECT(dc) AS exclude MATCH p = (c:Computer {domain: $result})-[n:HasSession]->(u:User)-[r2:MemberOf*1..]->(g2:Group) WHERE NOT c IN exclude and g2.objectid ENDS WITH \"-544\" RETURN p",
+    "description": "Sessions of Administrators on non DCs Computers"
+  },
+  {
+    "name": "DCSync Principals not Administrators",
+    "query": "MATCH (admins {domain: $result})-[r1:MemberOf*0..]->(g1:Group) WHERE (g1.objectid =~ \"(?i)S-1-5-.*-512\") OR (g1.objectid =~ \"(?i)S-1-5-.*-516\") OR (g1.objectid =~ \"(?i)S-1-5-.*-518\") OR (g1.objectid =~ \"(?i)S-1-5-.*-519\") OR (g1.objectid =~ \"(?i)S-1-5-.*-520\") OR (g1.objectid =~ \"(?i)S-1-5-.*-544\") OR (g1.objectid =~ \"(?i)S-1-5-.*-548\") OR (g1.objectid =~ \"(?i)S-1-5-.*-549\") OR (g1.objectid =~ \"(?i)S-1-5-.*-551\") WITH COLLECT(admins) AS exclude MATCH p=(n1)-[:MemberOf|GetChanges*0..]->(u:Domain {name: $result}) WHERE NOT n1 IN exclude and (n1:Computer or n1:User) RETURN p",
+    "description": "DCSync Principals not Administrators"
+  },
+  {
+    "name": "AS-REP Roastable Principals",
+    "query": "MATCH (d:Domain {name: $result})-[r:Contains*1..]->(u {dontreqpreauth: true}) RETURN u",
+    "description": "AS-REP Roastable Principals"
+  },
+  {
+    "name": "Kerberoastable Principals",
+    "query": "MATCH (d:Domain {name: $result})-[r:Contains*1..]->(u {hasspn: true}) RETURN u",
+    "description": "Kerberoastable Principals"
+  },
+  {
+    "name": "Kerberoastable Administrators",
+    "query": "MATCH (admins {domain: $result})-[r1:MemberOf*0..]->(g1:Group) WHERE (g1.objectid =~ \"(?i)S-1-5-.*-512\") OR (g1.objectid =~ \"(?i)S-1-5-.*-516\") OR (g1.objectid =~ \"(?i)S-1-5-.*-518\") OR (g1.objectid =~ \"(?i)S-1-5-.*-519\") OR (g1.objectid =~ \"(?i)S-1-5-.*-520\") OR (g1.objectid =~ \"(?i)S-1-5-.*-544\") OR (g1.objectid =~ \"(?i)S-1-5-.*-548\") OR (g1.objectid =~ \"(?i)S-1-5-.*-549\") OR (g1.objectid =~ \"(?i)S-1-5-.*-551\") WITH COLLECT(admins) AS filter MATCH (d:Domain {name: $result})-[r:Contains*1..]->(u {hasspn: true}) WHERE u IN filter RETURN u",
+    "description": "Kerberoastable Administrators"
+  },
+  {
+    "name": "Constrained Delegations",
+    "query": "MATCH p = (a {domain: $result})-[:AllowedToDelegate]->(c:Computer) RETURN p",
+    "description": "Constrained Delegations"
+  },
+  {
+    "name": "Constrained Delegations with Protocol Transition (trustedToAuth)",
+    "query": "MATCH p = (a {domain: $result, trustedtoauth: true})-[:AllowedToDelegate]->(c:Computer) RETURN p",
+    "description": "Constrained Delegations with Protocol Transition (trustedToAuth)"
+  },
+  {
+    "name": "Computers Allowed to Delegate for Another Computer",
+    "query": "MATCH p = (c1:Computer {domain: $result})-[:AllowedToDelegate]->(c2:Computer) RETURN p",
+    "description": "Computers Allowed to Delegate for Another Computer"
+  },
+  {
+    "name": "Unconstrained Delegation Principals",
+    "query": "MATCH (dca)-[r:MemberOf*0..]->(g:Group) WHERE g.objectid =~ \"S-1-5-.*-516\" OR g.objectid =~ \".*-S-1-5-32-544\" WITH COLLECT(dca) AS exclude MATCH p = (d:Domain {name: $result})-[r:Contains*1..]->(uc {unconstraineddelegation: true}) WHERE (uc:User OR uc:Computer) AND NOT uc IN exclude RETURN p",
+    "description": "Unconstrained Delegation Principals"
+  },
+  {
+    "name": "Resource-Based Constrained Delegation Principals",
+    "query": "MATCH p=(m)-[r:AllowedToAct]->(n) RETURN p",
+    "description": "Resource-Based Constrained Delegation Principals"
+  },
+  {
+    "name": "Configure Resource-Based Constrained Delegation Permissions",
+    "query": "MATCH p=(m)-[r:AddAllowedToAct]->(n) RETURN p",
+    "description": "Configure Resource-Based Constrained Delegation Permissions"
+  },
+  {
+    "name": "Interesting GPOs by Keyword",
+    "query": "UNWIND [\"360totalsecurity\", \"access\", \"acronis\", \"adaware\", \"admin\", \"admin\", \"aegislab\", \"ahnlab\", \"alienvault\", \"altavista\", \"amsi\", \"anti-virus\", \"antivirus\", \"antiy\", \"apexone\", \"applock\", \"arcabit\", \"arcsight\", \"atm\", \"atp\", \"av\", \"avast\", \"avg\", \"avira\", \"baidu\", \"baiduspider\", \"bank\", \"barracuda\", \"bingbot\", \"bitdefender\", \"bluvector\", \"canary\", \"carbon\", \"carbonblack\", \"certificate\", \"check\", \"checkpoint\", \"citrix\", \"clamav\", \"code42\", \"comodo\", \"countercept\", \"countertack\", \"credential\", \"crowdstrike\", \"custom\", \"cyberark\", \"cybereason\", \"cylance\", \"cynet360\", \"cyren\", \"darktrace\", \"datadog\", \"defender\", \"druva\", \"drweb\", \"duckduckbot\", \"edr\", \"egambit\", \"emsisoft\", \"encase\", \"endgame\", \"ensilo\", \"escan\", \"eset\", \"exabot\", \"exception\", \"f-secure\", \"f5\", \"falcon\", \"fidelis\", \"fireeye\", \"firewall\", \"fix\", \"forcepoint\", \"forti\", \"fortigate\", \"fortil\", \"fortinet\", \"gdata\", \"gravityzone\", \"guard\", \"honey\", \"huntress\", \"identity\", \"ikarussecurity\", \"insight\", \"ivanti\", \"juniper\", \"k7antivirus\", \"k7computing\", \"kaspersky\", \"kingsoft\", \"kiosk\", \"laps\", \"lightcyber\", \"logging\", \"logrhythm\", \"lynx\", \"malwarebytes\", \"manageengine\", \"mass\", \"mcafee\", \"microsoft\", \"mj12bot\", \"msnbot\", \"nanoav\", \"nessus\", \"netwitness\", \"office365\", \"onedrive\", \"orion\", \"palo\", \"paloalto\", \"paloaltonetworks\", \"panda\", \"pass\", \"powershell\", \"proofpoint\", \"proxy\", \"qradar\", \"rdp\", \"rsa\", \"runasppl\", \"sandboxe\", \"sap\", \"scanner\", \"scanning\", \"sccm\", \"script\", \"secret\", \"secureage\", \"secureworks\", \"security\", \"sensitive\", \"sentinel\", \"sentinelone\", \"slurp\", \"smartcard\", \"sogou\", \"solarwinds\", \"sonicwall\", \"sophos\", \"splunk\", \"superantispyware\", \"symantec\", \"tachyon\", \"temporary\", \"tencent\", \"totaldefense\", \"transfer\", \"trapmine\", \"trend micro\", \"trendmicro\", \"trusteer\", \"trustlook\", \"uac\", \"vdi\", \"virusblokada\", \"virustotal\", \"virustotalcloud\", \"vpn\", \"vuln\", \"webroot\", \"whitelist\", \"wifi\", \"winrm\", \"workaround\", \"yubikey\", \"zillya\", \"zonealarm\", \"zscaler\"] as word match (n:GPO {domain: $result}) where toLower(n.name) CONTAINS toLower(word) RETURN n",
+    "description": "Interesting GPOs by Keyword"
+  },
+  {
+    "name": "GPO Permissions of Non-Admin Principals",
+    "query": "MATCH (u1:user {domain: $result})-[r:MemberOf*1..]->(n:Group) WHERE (n.objectid =~ \"(?i)S-1-5-.*-512\") OR (n.objectid =~ \"(?i)S-1-5-.*-516\") OR (n.objectid =~ \"(?i)S-1-5-.*-518\") OR (n.objectid =~ \"(?i)S-1-5-.*-519\") OR (n.objectid =~ \"(?i)S-1-5-.*-520\") OR (n.objectid =~ \"(?i)S-1-5-.*-544\") OR (n.objectid =~ \"(?i)S-1-5-.*-548\") OR (n.objectid =~ \"(?i)S-1-5-.*-549\") OR (n.objectid =~ \"(?i)S-1-5-.*-551\") WITH COLLECT(u1) AS exclude MATCH p = (u2:User)-[r:AddMember|AddSelf|WriteSPN|AddKeyCredentialLink|AllExtendedRights|ForceChangePassword|GenericAll|GenericWrite|WriteDacl|WriteOwner|Owns]->(g:GPO) WHERE NOT u2 IN exclude RETURN p",
+    "description": "GPO Permissions of Non-Admin Principals"
+  },
+  {
+    "name": "LAPS Passwords Readable by Non-Admin",
+    "query": "MATCH (u1:user {domain: $result})-[r:MemberOf*1..]->(n:Group) WHERE (n.objectid =~ \"(?i)S-1-5-.*-512\") OR (n.objectid =~ \"(?i)S-1-5-.*-516\") OR (n.objectid =~ \"(?i)S-1-5-.*-518\") OR (n.objectid =~ \"(?i)S-1-5-.*-519\") OR (n.objectid =~ \"(?i)S-1-5-.*-520\") OR (n.objectid =~ \"(?i)S-1-5-.*-544\") OR (n.objectid =~ \"(?i)S-1-5-.*-548\") OR (n.objectid =~ \"(?i)S-1-5-.*-549\") OR (n.objectid =~ \"(?i)S-1-5-.*-551\") WITH COLLECT(u1) AS exclude MATCH p = (u2)-[r1:MemberOf*1..]->(g:Group)-[r2:GenericAll]->(t:Computer {haslaps:true}) WHERE NOT u2 IN exclude RETURN p",
+    "description": "LAPS Passwords Readable by Non-Admin"
+  },
+  {
+    "name": "LAPS Passwords Readable by Owned Principals",
+    "query": "MATCH p = (n {owned: true})-[r1:MemberOf*1..]->(g:Group)-[r2:GenericAll]->(t:Computer {haslaps:true}) RETURN p",
+    "description": "LAPS Passwords Readable by Owned Principals"
+  },
+  {
+    "name": "ACLs to Computers (excluding High Value Targets)",
+    "query": "MATCH p = (ucg {highvalue: false})-[r {isacl: true}]->(c:Computer {domain: $result}) WHERE (ucg:User OR ucg:Computer OR ucg:Group) RETURN p",
+    "description": "ACLs to Computers (excluding High Value Targets)"
+  },
+  {
+    "name": "Group Delegated Outbound Object Control of Owned Principals",
+    "query": "MATCH p = (n {owned: true})-[r1:MemberOf*1..]->(g:Group)-[r2 {isacl: true}]->(t) RETURN p",
+    "description": "Group Delegated Outbound Object Control of Owned Principals"
+  },
+  {
+    "name": "Dangerous Rights for Groups under Domain Users",
+    "query": "MATCH p=(m:Group {domain: $result})-[r1:MemberOf*1..]->(g:Group)-[:Owns|WriteDacl|GenericAll|WriteOwner|ExecuteDCOM|GenericWrite|AllowedToDelegate|ForceChangePassword]->(n) WHERE m.objectid ENDS WITH '-513' RETURN p",
+    "description": "Dangerous Rights for Groups under Domain Users"
+  },
+  {
+    "name": "Set DCSync Principals as High Value Targets",
+    "query": "MATCH (s)-[r:MemberOf|GetChanges*1..]->(d:Domain) WITH s, d MATCH (s)-[r:MemberOf|GetChangesAll*1..]->(d) WITH s, d MATCH p = (s)-[r:MemberOf|GetChanges|GetChangesAll*1..]->(d) WHERE s.highvalue = false SET s.highvalue = true, s.highvaluereason = 'DCSync Principal' RETURN p",
+    "description": "Set DCSync Principals as High Value Targets"
+  },
+  {
+    "name": "Set Unconstrained Delegation Principals as High Value Targets",
+    "query": "MATCH p = (d:Domain)-[r:Contains*1..]->(uc) WHERE (uc:User OR uc:Computer) AND uc.unconstraineddelegation = true AND uc.highvalue = false SET uc.highvalue = true, uc.highvaluereason = 'Unconstrained Delegation Principal' RETURN p",
+    "description": "Set Unconstrained Delegation Principals as High Value Targets"
+  },
+  {
+    "name": "Set Local Admin or Reset Password Principals as High Value Targets",
+    "query": "MATCH (a)-[r:AdminTo|ForceChangePassword]->(b) WHERE a.highvalue = false SET a.highvalue = true, a.highvaluereason = 'Local Admin or Reset Password Principal' RETURN a",
+    "description": "Set Local Admin or Reset Password Principals as High Value Targets"
+  },
+  {
+    "name": "Set Principals with Privileges on Computers as High Value Targets",
+    "query": "MATCH (a)-[r:AllowedToDelegate|ExecuteDCOM|ForceChangePassword|GenericAll|GenericWrite|Owns|WriteDacl|WriteOwner]->(n:Computer) WHERE a.highvalue = false SET a.highvalue = true, a.highvaluereason = 'Principal with Privileges on Computers' RETURN a",
+    "description": "Set Principals with Privileges on Computers as High Value Targets"
+  },
+  {
+    "name": "Set Principals with Privileges on Cert Publishers as High Value Targets",
+    "query": "MATCH (a)-[r:GenericAll|GenericWrite|MemberOf|Owns|WriteDacl|WriteOwner]->(g:Group) WHERE g.objectid =~ 'S-1-5-21-.*-517' AND a.highvalue = false SET a.highvalue = true, a.highvaluereason = 'Principal with Privileges on the Cert Publisher group' RETURN a",
+    "description": "Set Principals with Privileges on Cert Publishers as High Value Targets"
+  },
+  {
+    "name": "Set Members of High Value Targets Groups as High Value Targets",
+    "query": "MATCH (a)-[r:MemberOf*1..]->(g:Group) WHERE a.highvalue = false AND g.highvalue = true SET a.highvalue = true, a.highvaluereason = 'Member of High Value Target Group' RETURN a",
+    "description": "Set Members of High Value Targets Groups as High Value Targets"
+  },
+  {
+    "name": "Remove Inactive Users and Computers from High Value Targets",
+    "query": "MATCH (uc) WHERE uc.highvalue = true AND ((uc:User AND uc.enabled = false) OR (uc:Computer AND ((uc.enabled = false) OR (uc.lastlogon > 0 AND uc.lastlogon < (TIMESTAMP() / 1000 - 15552000)) OR (uc.lastlogontimestamp > 0 AND uc.lastlogontimestamp < (TIMESTAMP() / 1000 - 15552000))))) SET uc.highvalue = false, uc.nothighvaluereason = 'Inactive' RETURN uc",
+    "description": "Remove Inactive Users and Computers from High Value Targets"
+  },
+  {
+    "name": "Shortest Paths to Domain (including Computers)",
+    "query": "MATCH p = allShortestPaths((uc)-[r:{}*1..]->(d:Domain {name: $result})) WHERE (uc:User OR uc:Computer) RETURN p",
+    "description": "Shortest Paths to Domain (including Computers)"
+  },
+  {
+    "name": "Shortest Paths to no LAPS",
+    "query": "MATCH p = allShortestPaths((uc)-[r:{}*1..]->(c:Computer)) WHERE (uc:User OR uc:Computer) AND NOT uc = c AND c.haslaps = false RETURN p",
+    "description": "Shortest Paths to no LAPS"
+  },
+  {
+    "name": "Shortest Paths from Kerberoastable Users to Computers",
+    "query": "MATCH p = allShortestPaths((u:User)-[r:{}*1..]->(c:Computer)) WHERE u.hasspn = true RETURN p",
+    "description": "Shortest Paths from Kerberoastable Users to Computers"
+  },
+  {
+    "name": "Shortest Paths from Kerberoastable Users to High Value Targets",
+    "query": "MATCH p = allShortestPaths((u:User)-[r:{}*1..]->(h)) WHERE u.hasspn = true AND h.highvalue = true RETURN p",
+    "description": "Shortest Paths from Kerberoastable Users to High Value Targets"
+  },
+  {
+    "name": "Shortest Paths from Owned Principals (including everything)",
+    "query": "MATCH p = allShortestPaths((u:User)-[r:{}*1..]->(a)) WHERE u.owned = true AND u <> a RETURN p",
+    "description": "Shortest Paths from Owned Principals (including everything)"
+  },
+  {
+    "name": "Shortest Paths from Owned Principals to Domain",
+    "query": "MATCH p = allShortestPaths((o)-[r:{}*1..]->(d:Domain)) WHERE o.owned = true AND d.name = $result RETURN p",
+    "description": "Shortest Paths from Owned Principals to Domain"
+  },
+  {
+    "name": "Shortest Paths from Owned Principals to High Value Targets",
+    "query": "MATCH p = allShortestPaths((o)-[r:{}*1..]->(h)) WHERE o.owned = true AND h.highvalue = true RETURN p",
+    "description": "Shortest Paths from Owned Principals to High Value Targets"
+  },
+  {
+    "name": "Shortest Paths from Owned Principals to no LAPS",
+    "query": "MATCH p = allShortestPaths((o)-[r:{}*1..]->(c:Computer)) WHERE NOT o = c AND o.owned = true AND c.haslaps = false RETURN p",
+    "description": "Shortest Paths from Owned Principals to no LAPS"
+  },
+  {
+    "name": "Shortest Paths from no Signing to Domain",
+    "query": "MATCH p = allShortestPaths((c:Computer)-[r:{}*1..]->(d:Domain)) WHERE c.hassigning = false AND d.name = $result RETURN p",
+    "description": "Shortest Paths from no Signing to Domain"
+  },
+  {
+    "name": "Shortest Paths from no Signing to High Value Targets",
+    "query": "MATCH p = allShortestPaths((c:Computer)-[r:{}*1..]->(h)) WHERE NOT c = h AND c.hassigning = false AND h.highvalue = true RETURN p",
+    "description": "Shortest Paths from no Signing to High Value Targets"
+  },
+  {
+    "name": "Shortest Paths from Domain Users and Domain Computers (including everything)",
+    "query": "MATCH p = allShortestPaths((g:Group)-[r:{}*1..]->(a)) WHERE (g.objectid =~ $domain_users_id OR g.objectid =~ $domain_computers_id) AND g <> a RETURN p",
+    "description": "Shortest Paths from Domain Users and Domain Computers (including everything)"
+  },
+  {
+    "name": "Search From Owned to Anything",
+    "query": "MATCH p = allshortestPaths((n)-[*1..]->(c))  WHERE n.name = $result AND NOT c=n  RETURN p",
+    "description": "Search From Owned to Anything"
+  }
+]
