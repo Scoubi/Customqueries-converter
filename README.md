@@ -31,13 +31,30 @@ jq '[.queries[] | . as $parent | .queryList[] | select(.final) | {name: (.title 
 ```
 
 ## Prepare to Use the API
-1. In your BHCE instance, grab the `JTW Bearer token`
+In your BHCE instance, grab the `JTW Bearer token`
 
-[Instruction will follow]
+**NOTE**: JTW Bearer token are usefull for single usage like in this case. If you want to built a reliable integration, you should use an API Key. 
+
+1. Navigate the to `API Explorer` page
+
+![API Explorer](./img/JTW-1.png)
+
+2. Expend a `GET` method such as `/api/v2/self` and click on the `Try it out` button
+
+![Expend API Self](./img/JTW-2.png)
+
+
+3. Click on `Execute`
+
+![Execute](./img/JTW-3.png)
+
+4. In the `Curl` request, copy the value after the `Bearer` word. It should start with `ey`
+
+![Copy JTW value](./img/JTW-4.png)
 
 ## Upload the JSON to BHCE
-Now the
 
+If you are using Windows or PowerShell click [here](README.md#Windows)
 ### For Linux and MacOS
 
 Modify the following bash script
@@ -58,7 +75,7 @@ INPUT_FILE="newformat_customqueries.json"
 #If you open the Network tab within your browser, you will see calls against the API made utilizing this structure.
 
 API_URL="http://localhost:8080/api/v2/saved-queries"
-JWT_TOKEN="eyJhb..."
+JWT_TOKEN="eyJhb..." 
 
 # Loop through each query and upload
 jq -c '.[]' "$INPUT_FILE" | while read -r query; do
@@ -71,12 +88,47 @@ echo ""
 done
 ```
 
-5. Upload the queries
-- In your terminal run the following command : `bash up_queries.sh`
+In your terminal run the following command to upload the queries : `bash up_queries.sh`
 
-### For Windows
+### Windows
 
-[Add a PoSh Script]
+Modify the following bash script
+- Make sure you have the right URL in `API_URL`
+- Replace `"eyJhb..."` with the actual JTW Token you found in the previous step
+- Save the script to a file like `up_queries.ps1`
+- 
+``` PowerShell
+$InputFile = "bhce_customqueries.json"
+$ApiUrl = "http://localhost:8080/api/v2/saved-queries"
+$JwtToken = "eyJhb..."
+
+$Queries = Get-Content $InputFile | ConvertFrom-Json
+
+foreach ($Query in $Queries) {
+    if (-not $Query.name -or -not $Query.query) {
+        Write-Warning "Skipping entry with missing 'name' or 'query'"
+        continue
+    }
+
+    # Rebuild object with correct field names
+    $JsonPayload = [pscustomobject]@{
+        name        = $Query.name
+        query       = $Query.query
+        description = $Query.description
+    } | ConvertTo-Json -Depth 5 -Compress
+
+    Invoke-RestMethod -Method Post -Uri $ApiUrl `
+        -Headers @{ 
+            "Content-Type"  = "application/json"; 
+            "Authorization" = "Bearer $JwtToken" 
+        } `
+        -Body $JsonPayload
+
+    Write-Host ""
+}
+```
+
+
 
 ## Conclusion
 
