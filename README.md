@@ -18,6 +18,8 @@ Alternatively you can use one of the `customqueries.json` file that are availabl
 - [ZephrFish](https://github.com/ZephrFish/Bloodhound-CustomQueries/blob/main/customqueries.json)
 - [Compass Security](https://github.com/CompassSecurity/BloodHoundQueries/blob/master/BloodHound_Custom_Queries/customqueries.json)
 
+**NOTE**: For your convinience, I have added a version of those 3 customqueries.json in the new format in the [customqueries](./customqueries) folder of this repo. You can skip the convertion step if you used any of those files.
+
 ## Converting to the new Format
 
 Convert your Legacy json into a format BHCE's API can consume.  
