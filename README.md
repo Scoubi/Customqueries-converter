@@ -42,9 +42,9 @@ In your BHCE instance, grab the `JWT Bearer token`
 
 ![API Explorer](./img/JWT-1.png)
 
-2. Expend a `GET` method such as `/api/v2/self` and click on the `Try it out` button
+2. Expand a `GET` method such as `/api/v2/self` and click on the `Try it out` button
 
-![Expend API Self](./img/JWT-2.png)
+![Expand API Self](./img/JWT-2.png)
 
 
 3. Click on `Execute`
@@ -95,7 +95,7 @@ In your terminal run the following command to upload the queries : `bash up_quer
 
 ### Windows
 
-Modify the following bash script
+Modify the following PowerShell script
 - Make sure you have the right URL in `API_URL`
 - Replace `"eyJhb..."` with the actual JWT Token you found in the previous step
 - Save the script to a file like `up_queries.ps1`
