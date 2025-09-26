@@ -69,7 +69,7 @@ Modify the following bash script
 #!/bin/bash
 
 # Path to valid CE formatted JSON file
-INPUT_FILE="newformat_customqueries.json"
+INPUT_FILE="bhce_customqueries.json"
 
 # API endpoint and token
 #For quick tests or one-time calls, the JWT used by your browser may be the simplest route. 
